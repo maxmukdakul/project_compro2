@@ -1,6 +1,8 @@
 import pygame
 from utils.display import display_text
 from utils.constants import WHITE
+import data_collector
+
 
 def upgrade_menu(hero, screen, background):
     choosing = True
@@ -20,12 +22,31 @@ def upgrade_menu(hero, screen, background):
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_1:
                     hero.strength_level += 1
+                    # Track the strength upgrade
+                    data_collector.track_upgrade(hero.current_level,
+                                                 "Strength",
+                                                 hero.strength_level)
+                    choosing = False
                 elif event.key == pygame.K_2:
                     hero.magic_level += 1
+                    # Track the magic upgrade
+                    data_collector.track_upgrade(hero.current_level, "Magic",
+                                                 hero.magic_level)
+                    choosing = False
                 elif event.key == pygame.K_3:
                     hero.speed += 0.1
+                    # Track the speed upgrade
+                    data_collector.track_upgrade(hero.current_level, "Speed",
+                                                 hero.speed)
+                    choosing = False
                 elif event.key == pygame.K_4:
                     hero.max_hp += 50
                     hero.hp += 50
-                hero.coins += 10
-                choosing = False
+                    # Track the health upgrade
+                    data_collector.track_upgrade(hero.current_level, "Health",
+                                                 hero.max_hp)
+                    choosing = False
+
+                # Give coins after any upgrade
+                if not choosing:
+                    hero.coins += 10

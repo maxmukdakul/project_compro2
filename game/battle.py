@@ -1,6 +1,7 @@
 import pygame
 from utils.display import display_text
 from utils.constants import WHITE, GREEN, HEIGHT, WIDTH
+import data_collector
 
 
 class Battle:
@@ -83,6 +84,9 @@ class Battle:
         self.show_animation(f"-{damage}", self.enemy.x, self.enemy.y - 30,
                             (100, 100, 255))
         self.hero_action_taken = True
+        # Track the skill usage and damage dealt
+        data_collector.track_skill_use(self.level, "Magic Attack", damage)
+        data_collector.track_damage(self.level, damage, "Magic")
 
     def use_strength_attack(self):
         damage = self.hero.attack_strength()
@@ -90,6 +94,9 @@ class Battle:
         self.show_animation(f"-{damage}", self.enemy.x, self.enemy.y - 30,
                             (255, 100, 100))
         self.hero_action_taken = True
+        # Track the skill usage and damage dealt
+        data_collector.track_skill_use(self.level, "Strength Attack", damage)
+        data_collector.track_damage(self.level, damage, "Strength")
 
     def use_defend(self):
         enemy_damage = self.enemy.attack()
@@ -98,12 +105,16 @@ class Battle:
         self.show_animation("Defended!", self.hero.x, self.hero.y - 30,
                             (100, 255, 100))
         self.hero_action_taken = True
+        # Track the skill usage
+        data_collector.track_skill_use(self.level, "Defend", reduced_damage)
 
     def use_heal(self):
         healed_amount = self.hero.heal()
         self.show_animation(f"+{healed_amount} HP", self.hero.x,
                             self.hero.y - 30, (255, 255, 100))
         self.hero_action_taken = True
+        # Track the skill usage
+        data_collector.track_skill_use(self.level, "Heal", healed_amount)
 
         # Enemy attack after healing (only if hero didn't dodge)
         if not self.hero.dodge():
@@ -218,12 +229,16 @@ class Battle:
 
         # Check win/loss conditions
         if self.hero.hp <= 0:
+            # Record health data before game over
+            data_collector.track_health(self.level, 0, self.hero.max_hp)
             self.game.game_over()
             pygame.time.delay(1000)
             self.battle_running = False
             return False
 
         if self.enemy.hp <= 0:
+            # Record health data after winning
+            data_collector.track_health(self.level, self.hero.hp, self.hero.max_hp)
             self.battle_running = False
             return True
 
@@ -232,5 +247,7 @@ class Battle:
 
 def battle(hero, enemy, level, screen, game, background):
     """Legacy function for backward compatibility"""
+    # Store current level in hero for tracking purposes
+    hero.current_level = level
     battle_instance = Battle(hero, enemy, level, screen, game, background)
     return battle_instance.run()

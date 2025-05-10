@@ -6,23 +6,34 @@ from game.battle import battle
 from game.upgrade import upgrade_menu
 from utils.constants import WIDTH, HEIGHT, WHITE
 from utils.display import display_text
-from background import create_game_background  # Import the new function
+from background import create_game_background
+import data_collector
 
 
 class Game:
     def __init__(self):
         pygame.init()
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
+        self.clock = pygame.time.Clock()
+        self.initialize_game()
+
+        # Load additional images
+        self.coin_image = pygame.image.load('images/coins.png')
+        self.coin_image = pygame.transform.scale(self.coin_image, (20, 20))
+
+    def initialize_game(self):
+        """Initialize or reset all game states and objects"""
         self.hero = Hero()  # Initialize the player (hero)
         self.enemy = Enemy(level=1)  # Initialize an enemy for the demo
-        self.clock = pygame.time.Clock()
         self.shop_open = False  # Track if the shop is open
-        # Draw the hero and enemy on the main screen
         self.show_characters = True  # Add this flag
         self.shop_button = pygame.Rect(WIDTH - 150, 20, 120,
                                        40)  # Shop button in top right
         self.current_level = 1  # Track the current level
         self.enemies_defeated = 0  # Track how many enemies have been defeated
+
+        # Set the hero's current level attribute for data collection
+        self.hero.current_level = self.current_level
 
         # Create the background with platform
         self.background = create_game_background()
@@ -32,36 +43,24 @@ class Game:
         land_y = HEIGHT - land_height
         self.hero.y = land_y - 50  # 50 is the height of the character
         self.enemy.y = land_y - 50  # Position enemy on platform too
-
-        # Load additional images
-        self.coin_image = pygame.image.load('images/coins.png')
-        self.coin_image = pygame.transform.scale(self.coin_image, (20, 20))
+        self.game_running = True
 
     def run(self):
-        running = True
-        while running:
-            # Draw background instead of filling with white
+        self.game_running = True
+        while self.game_running:
             self.screen.blit(self.background, (0, 0))
             self.handle_events()
 
             if not self.shop_open:
-                # Draw the hero and enemy in the main screen
                 if self.show_characters:
                     self.hero.draw(self.screen)
                     self.enemy.draw(self.screen)
-
-                # Main game logic
                 self.display_hero_stats()
-                # Draw shop button in top right corner
                 pygame.draw.rect(self.screen, (200, 200, 200),
                                  self.shop_button)
                 display_text(self.screen, "Shop", WIDTH - 105, 30)
-
-                # Display current level
                 display_text(self.screen, f"Level: {self.current_level}",
                              WIDTH // 2 - 50, 20)
-
-                # Remove instructions for B key since we're clicking the enemy now
                 display_text(self.screen, "Click on the enemy to battle",
                              WIDTH // 2 - 150, HEIGHT // 2)
 
@@ -162,25 +161,82 @@ class Game:
             pygame.display.flip()
             pygame.time.delay(1500)  # Show for 1.5 seconds
         else:
-            self.screen.blit(self.background, (0, 0))  # Use background
-            display_text(self.screen, "Game Over", WIDTH // 2 - 100,
-                         HEIGHT // 2)
-            display_text(self.screen,
-                         f"You reached level {self.current_level}",
-                         WIDTH // 2 - 130, HEIGHT // 2 + 40)
-            display_text(self.screen,
-                         f"Enemies defeated: {self.enemies_defeated}",
-                         WIDTH // 2 - 130, HEIGHT // 2 + 80)
-            pygame.display.flip()
-            pygame.time.delay(3000)  # Show for 3 seconds before returning
+            self.game_over()
 
     def game_over(self):
-        """Handle game over state."""
-        self.screen.blit(self.background, (0, 0))  # Use background
-        display_text(self.screen, "Game Over", WIDTH // 2 - 100, HEIGHT // 2)
-        display_text(self.screen, f"You reached level {self.current_level}",
-                     WIDTH // 2 - 130, HEIGHT // 2 + 40)
-        display_text(self.screen, f"Enemies defeated: {self.enemies_defeated}",
-                     WIDTH // 2 - 130, HEIGHT // 2 + 80)
-        pygame.display.flip()
-        pygame.time.delay(3000)
+        """Handle game over state with New Game and Quit buttons."""
+        # Create buttons for New Game and Quit
+        button_width = 140
+        button_height = 50
+        button_spacing = 20
+
+        center_x = WIDTH // 2
+        center_y = HEIGHT // 2
+
+        # Create button rectangles
+        new_game_button = pygame.Rect(
+            center_x - button_width - button_spacing // 2,
+            center_y + 120,
+            button_width,
+            button_height
+        )
+
+        quit_button = pygame.Rect(
+            center_x + button_spacing // 2,
+            center_y + 120,
+            button_width,
+            button_height
+        )
+
+        # Prepare font for button text
+        font = pygame.font.SysFont(None, 36)
+        new_game_text = font.render("New Game", True, (0, 0, 0))
+        quit_text = font.render("Quit", True, (0, 0, 0))
+
+        # Get centered text rects
+        new_game_text_rect = new_game_text.get_rect(
+            center=new_game_button.center)
+        quit_text_rect = quit_text.get_rect(center=quit_button.center)
+
+        while True:
+            # Draw game over screen
+            self.screen.blit(self.background, (0, 0))  # Use background
+
+            # Center game over texts
+            display_text(self.screen, "Game Over", center_x - 60,
+                         center_y - 20)
+            display_text(self.screen,
+                         f"You reached level {self.current_level}",
+                         center_x - 100, center_y + 20)
+            display_text(self.screen,
+                         f"Enemies defeated: {self.enemies_defeated}",
+                         center_x - 100, center_y + 60)
+
+            # Draw buttons
+            pygame.draw.rect(self.screen, (100, 255, 100),
+                             new_game_button)  # Green button
+            pygame.draw.rect(self.screen, (255, 100, 100),
+                             quit_button)  # Red button
+
+            # Blit centered text onto buttons
+            self.screen.blit(new_game_text, new_game_text_rect)
+            self.screen.blit(quit_text, quit_text_rect)
+
+            pygame.display.flip()
+
+            # Handle events
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.game_running = False
+                    return
+                elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    mouse_x, mouse_y = pygame.mouse.get_pos()
+
+                    if new_game_button.collidepoint(mouse_x, mouse_y):
+                        self.initialize_game()  # Reset game state
+                        return  # Exit game_over and resume run()
+                    elif quit_button.collidepoint(mouse_x, mouse_y):
+                        self.game_running = False
+                        return
+
+            self.clock.tick(60)
