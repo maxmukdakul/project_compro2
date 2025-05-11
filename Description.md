@@ -72,31 +72,6 @@ The game follows a cycle:
 
 ---
 
-### 3.3 Algorithms Involved
-
-- **Turn-Based Battle Algorithm**:
-  - Determines turn order using the speed stat.
-  - Calculates damage using stats and random modifiers.
-  - Ends battle when one character's HP reaches zero.
-
-- **EXP and Coin Rewards**:
-  - Rewards scale with enemy difficulty.
-  - Leveling up increases base stats and may unlock new abilities.
-
-- **Upgrade & Shop System**:
-  - Shop sells potions, weapons, and magic tools.
-  - Includes affordability checks.
-  - Example items:
-    - **Potion**: +25 HP
-    - **Sword**: +10 Strength
-    - **Wand**: +10 Magic
-
-- **Event-Driven Input Processing**:
-  - Inputs are managed through a validated event loop.
-  - Ensures accurate and responsive gameplay transitions.
-
----
-
 ## Statistical Data Collection
 
 ### 4.1 Data Features
@@ -140,4 +115,5 @@ Data is recorded in `.csv` format using a `DataCollector` class, facilitating ea
 
 ---
 
-**UML**
+## UML Diagram for Project Compro2
+the UML is in images folder with name "UML compro2"

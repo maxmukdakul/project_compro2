@@ -63,3 +63,6 @@ python game_visualization.py
 ## Notes
 Ensure the game_data directory exists in the root folder and contains valid CSV data before running the graph visualization tool.
 The game saves data automatically during gameplay, which will be available for visualization.
+
+## UML Diagram for Project Compro2
+the UML is in images folder with name "UML compro2"
